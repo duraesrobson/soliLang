@@ -1,0 +1,1 @@
+"""testes da soliLang (executar com: python3 -m unittest discover -v)."""

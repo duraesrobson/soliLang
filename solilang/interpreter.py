@@ -24,13 +24,13 @@ class Interpretador:
                 self.estoque[instrucao.item] = atual + instrucao.quantidade
 
             elif isinstance(instrucao, Distribuicao):
-                atual = self.estoque.get(instrucao.item, 0)
+                atual = self.estoque[instrucao.item]
                 self.estoque[instrucao.item] = atual - instrucao.quantidade
 
             elif isinstance(instrucao, Consulta):
                 print(
                     f"Consulta {instrucao.item}: "
-                    f"{self.estoque.get(instrucao.item, 0)} unidades"
+                    f"{self.estoque[instrucao.item]} unidades"
                 )
             elif isinstance(instrucao, Relatorio):
                 self.imprimir_relatorio()

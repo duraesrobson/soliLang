@@ -50,7 +50,7 @@ class Lexer:
                 tokens.append(Token(PONTO_VIRGULA, ";", linha, coluna))
             elif caractere in LETRAS_MINUSCULAS:
                 raise ErroLexico(
-                    f"identificador inválido começando com: '{caractere}'; "
+                    f"identificador inválido começando com '{caractere}'; "
                     "use letra maiúscula (ex.: ARROZ)",
                     linha,
                 )

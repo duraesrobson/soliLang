@@ -1,7 +1,7 @@
 """Análise semântica da soliLang.
 
 O parser garante que a instrução está escrita corretamente. A análise
-semântica verifica se ela faz sentido para o sistema Conecta Solidária.
+semântica verifica se ela faz sentido para o controle de doações.
 
 Regras adotadas pelo grupo:
 1. Quantidades de doação e distribuição devem ser maiores que zero.

@@ -27,7 +27,9 @@ def validar(programa, estoque_inicial=None):
         if isinstance(instrucao, Doacao):
             if instrucao.quantidade <= 0:
                 raise ErroSemantico(
-                    f"a quantidade da doação de '{instrucao.item}' deve ser maior que zero (linha {instrucao.linha})"
+                    f"a quantidade da doação de '{instrucao.item}' "
+                    "deve ser maior que zero",
+                    instrucao.linha,
                 )
             estoque[instrucao.item] = (
                 estoque.get(instrucao.item, 0) + instrucao.quantidade
@@ -36,11 +38,15 @@ def validar(programa, estoque_inicial=None):
         elif isinstance(instrucao, Distribuicao):
             if instrucao.quantidade <= 0:
                 raise ErroSemantico(
-                    f"a quantidade da distribuição de '{instrucao.item}' deve ser maior que zero (linha {instrucao.linha})"
+                    f"a quantidade da distribuição de '{instrucao.item}' "
+                    "deve ser maior que zero",
+                    instrucao.linha,
                 )
             if instrucao.item not in estoque:
                 raise ErroSemantico(
-                    f"item '{instrucao.item}' não existe no estoque (linha {instrucao.linha})"
+                    f"item '{instrucao.item}' não existe no estoque; "
+                    "registre uma doação antes de distribuí-lo",
+                    instrucao.linha,
                 )
             disponivel = estoque[instrucao.item]
             if instrucao.quantidade > disponivel:

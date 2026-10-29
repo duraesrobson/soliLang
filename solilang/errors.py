@@ -22,7 +22,7 @@ class ErroLexico(SoliLangError):
 class ErroSintatico(SoliLangError):
     """tokens organizados de forma diferente da gramática"""
     
-    rotulo = "Erro semântico"    
+    rotulo = "Erro sintático"    
     
 class ErroSemantico(SoliLangError):
     """instrução bem escrita, mas invalida pelas regras do sistema"""

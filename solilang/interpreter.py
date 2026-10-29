@@ -38,7 +38,7 @@ class Interpretador:
         return self.estoque
 
     def imprimir_relatorio(self):
-        print("Estoque final:")
+        print("\n------------ Estoque atual ------------")
         if not self.estoque:
             print("(estoque vazio)")
             return

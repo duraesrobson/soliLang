@@ -1,4 +1,4 @@
-"""Tipos de tokens e palavras reservadas da SoliLang.
+"""Tipos de tokens e palavras reservadas da soliLang.
 
 Um token é a menor unidade significativa do programa: uma palavra reservada,
 um identificador, um número ou um sinal de pontuação.

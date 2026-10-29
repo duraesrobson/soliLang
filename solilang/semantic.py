@@ -1,4 +1,4 @@
-"""Análise semântica da SoliLang.
+"""Análise semântica da soliLang.
 
 O parser garante que a instrução está escrita corretamente. A análise
 semântica verifica se ela faz sentido para o sistema Conecta Solidária.

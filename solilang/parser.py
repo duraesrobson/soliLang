@@ -1,4 +1,4 @@
-"""Analisador sintático (parser) da SoliLang.
+"""Analisador sintático (parser) da soliLang.
 
 Recebe a lista de tokens produzida pelo lexer e verifica se ela segue a
 gramática da linguagem. Se estiver correta, devolve um Programa (AST).

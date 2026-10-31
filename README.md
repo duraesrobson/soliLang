@@ -100,6 +100,45 @@ Sem argumentos, o programa exibe o modo de uso:
 python3 main.py
 ```
 
+### Persistência do estoque
+
+Sem a flag, o estoque vive só em memória e começa vazio. Com `--estoque`, o
+programa lê o arquivo antes de executar e grava o resultado depois:
+
+```bash
+python3 main.py --estoque examples/exemplo.soli
+```
+
+O arquivo padrão é `estoque_atual.json`, criado na pasta do projeto. Para usar
+outro caminho, informe com `=`:
+
+```bash
+python3 main.py --estoque=dados.json examples/exemplo.soli
+```
+
+O arquivo é JSON puro e legível:
+
+```json
+{
+  "ARROZ": 40
+}
+```
+
+Comportamento:
+
+- **Arquivo inexistente** = estoque vazio (a primeira execução não é erro).
+- **Só grava se o programa for válido.** Havendo erro léxico, sintático ou
+  semântico, o arquivo não é tocado.
+- **Gravação atômica**: escreve em `estoque_atual.json.tmp` e renomeia no final, então
+  uma interrupção no meio não corrompe o estoque.
+- **Acumula entre execuções**: uma `DOACAO` de 50 num estoque de 40 resulta em
+  90 na execução seguinte.
+- **Fora do Git**: `estoque_atual.json` está no `.gitignore` — é dado da
+  instituição, não código.
+
+Não há SGBD. A persistência em arquivo cobre o caso de uso da instituição sem
+trazer a complexidade de banco de dados para dentro do escopo da linguagem.
+
 ## A linguagem
 
 | Comando | Forma | Efeito |
@@ -186,13 +225,13 @@ válido e executa, ou nada executa — não existe estado parcial.
 | 6 | Programa vazio (`INICIO FIM`) | aceito (produção ε) |
 | 7 | Erro no meio do programa | erro semântico; nada é executado |
 | 8 | Saída | `DOACAO`/`DISTRIBUIR` silenciosos; `CONSULTA` e `RELATORIO` imprimem |
-| 9 | Estoque | dicionário em memória, sempre começa vazio |
+| 9 | Estoque | dicionário em memória; persistência opcional em JSON via `--estoque` |
 | 10 | Comentários na linguagem | não existem (escopo mínimo) |
 
 ## Estrutura do projeto
 
 ```
-main.py                 driver do front-end e modos de inspeção
+main.py                 driver do front-end, modos de inspeção e persistência
 solilang/tokens.py      [front-end] tipos de token e palavras reservadas
 solilang/errors.py      [front-end] erros com número de linha
 solilang/lexer.py       [front-end] texto -> tokens
@@ -210,7 +249,8 @@ tests/                  testes automatizados com unittest
 python3 -m unittest discover -v
 ```
 
-São 29 testes: 7 de lexer, 9 de parser, 9 de semântica e 4 de integração.
+São 38 testes: 7 de lexer, 9 de parser, 9 de semântica, 4 de integração e 9
+de persistência em arquivo.
 
 ## Exemplos de erro
 
@@ -228,9 +268,10 @@ python3 main.py examples/erro_semantico.soli
 
 ## Limitações
 
-- Estoque em memória: não há persistência entre execuções.
+- Sem SGBD: a persistência é um arquivo JSON opcional (`--estoque`), não um
+  banco de dados relacional.
 - Sem funções, laços, variáveis ou comentários na linguagem.
-- Sem interface gráfica, banco de dados ou autenticação.
+- Sem interface gráfica, autenticação ou controle de usuários.
 - A linguagem é de domínio específico para gestão de doações; não é uma
   linguagem de Comunicação Alternativa e Aumentativa (CAA).
 

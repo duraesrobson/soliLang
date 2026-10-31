@@ -7,6 +7,10 @@ __pycache__/
 .venv/
 venv/
 
+# dados do sistema (nao fazem parte do codigo)
+estoque_atual.json
+*.json.tmp
+
 # chores do sistema
 .DS_Store
 .vscode/

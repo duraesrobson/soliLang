@@ -39,7 +39,7 @@ ferramenta, da documentação e da preparação da apresentação.
 
 ## Como o conteúdo foi validado
 
-- Cada arquivo foi executado localmente; a suíte fecha em 38 testes, todos
+- Cada arquivo foi executado localmente; a suíte fecha em 41 testes, todos
   passando.
 - Cada módulo foi lido e explicado pelo grupo antes de entrar no repositório.
 - Onde a sugestão da IA não se aplicava, o código foi corrigido — por

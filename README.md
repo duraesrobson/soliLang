@@ -102,19 +102,15 @@ python3 main.py
 
 ### Persistência do estoque
 
-Sem a flag, o estoque vive só em memória e começa vazio. Com `--estoque`, o
-programa lê o arquivo antes de executar e grava o resultado depois:
+No modo arquivo, o programa usa `estoque/estoque_atual.json` automaticamente. Ele lê o
+arquivo antes de executar e grava o resultado depois:
 
 ```bash
-python3 main.py --estoque examples/exemplo.soli
+python3 main.py examples/exemplo.soli
 ```
 
-O arquivo padrão é `estoque_atual.json`, criado na pasta do projeto. Para usar
-outro caminho, informe com `=`:
-
-```bash
-python3 main.py --estoque=dados.json examples/exemplo.soli
-```
+O arquivo fixo é `estoque/estoque_atual.json`, criado automaticamente na
+pasta `estoque/`. Não existe opção para escolher outro arquivo.
 
 O arquivo é JSON puro e legível:
 
@@ -129,15 +125,60 @@ Comportamento:
 - **Arquivo inexistente** = estoque vazio (a primeira execução não é erro).
 - **Só grava se o programa for válido.** Havendo erro léxico, sintático ou
   semântico, o arquivo não é tocado.
-- **Gravação atômica**: escreve em `estoque_atual.json.tmp` e renomeia no final, então
+- **Gravação atômica**: escreve em `estoque/estoque_atual.json.tmp` e renomeia no final, então
   uma interrupção no meio não corrompe o estoque.
 - **Acumula entre execuções**: uma `DOACAO` de 50 num estoque de 40 resulta em
   90 na execução seguinte.
-- **Fora do Git**: `estoque_atual.json` está no `.gitignore` — é dado da
+- **Fora do Git**: `estoque/` está no `.gitignore` — é dado da
   instituição, não código.
 
 Não há SGBD. A persistência em arquivo cobre o caso de uso da instituição sem
 trazer a complexidade de banco de dados para dentro do escopo da linguagem.
+
+### Modo interativo (REPL)
+
+Para digitar os comandos diretamente no terminal, execute sem arquivo:
+
+```bash
+python3 main.py
+```
+
+Também é possível iniciar como módulo Python:
+
+```bash
+python3 -m solilang
+```
+
+Exemplo de sessão:
+
+```text
+soliLang> DOACAO ARROZ, 50;
+soliLang> CONSULTA ARROZ;
+Consulta ARROZ: 50 unidades
+soliLang> DISTRIBUIR ARROZ, 10;
+soliLang> RELATORIO;
+
+------------ Estoque atual ------------
+ARROZ: 40 unidades
+soliLang> :sair
+```
+
+Cada linha é envolvida internamente por `INICIO` e `FIM`, então a gramática
+original continua a mesma. O estado fica vivo entre as linhas; um erro mostra
+a mensagem e não encerra a sessão.
+
+Persistência no REPL:
+
+```bash
+python3 main.py
+```
+
+No REPL, cada linha válida é salva imediatamente em `estoque/estoque_atual.json`.
+Use `:ajuda` para listar os comandos especiais e `:sair` para encerrar.
+
+No modo interativo sem nenhuma opção (`python3 main.py` ou `solilang`), o
+arquivo `estoque/estoque_atual.json` é usado automaticamente: ele é lido ao iniciar a
+sessão e atualizado depois de cada comando válido.
 
 ## A linguagem
 
@@ -225,7 +266,7 @@ válido e executa, ou nada executa — não existe estado parcial.
 | 6 | Programa vazio (`INICIO FIM`) | aceito (produção ε) |
 | 7 | Erro no meio do programa | erro semântico; nada é executado |
 | 8 | Saída | `DOACAO`/`DISTRIBUIR` silenciosos; `CONSULTA` e `RELATORIO` imprimem |
-| 9 | Estoque | dicionário em memória; persistência opcional em JSON via `--estoque` |
+| 9 | Estoque | dicionário em memória; persistência fixa em `estoque/estoque_atual.json` |
 | 10 | Comentários na linguagem | não existem (escopo mínimo) |
 
 ## Estrutura do projeto
@@ -239,6 +280,8 @@ solilang/ast_nodes.py   [front-end] nós da árvore sintática
 solilang/parser.py      [front-end] tokens -> AST (descendente recursivo)
 solilang/semantic.py    [front-end] regras de negócio
 solilang/interpreter.py [back-end]  execução e saída
+solilang/repl.py        interface interativa do terminal
+solilang/__main__.py    entrada para `python3 -m solilang`
 examples/               programas de exemplo (válidos e inválidos)
 tests/                  testes automatizados com unittest
 ```
@@ -249,8 +292,8 @@ tests/                  testes automatizados com unittest
 python3 -m unittest discover -v
 ```
 
-São 38 testes: 7 de lexer, 9 de parser, 9 de semântica, 4 de integração e 9
-de persistência em arquivo.
+São 41 testes: 7 de lexer, 9 de parser, 9 de semântica, 4 de integração, 9
+de persistência em arquivo e 5 do modo interativo.
 
 ## Exemplos de erro
 
@@ -268,7 +311,7 @@ python3 main.py examples/erro_semantico.soli
 
 ## Limitações
 
-- Sem SGBD: a persistência é um arquivo JSON opcional (`--estoque`), não um
+- Sem SGBD: a persistência é um arquivo JSON fixo (`estoque/estoque_atual.json`), não um
   banco de dados relacional.
 - Sem funções, laços, variáveis ou comentários na linguagem.
 - Sem interface gráfica, autenticação ou controle de usuários.

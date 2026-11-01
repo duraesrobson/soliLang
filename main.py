@@ -12,8 +12,6 @@ Modos de uso:
     python3 main.py arquivo.soli                       executa o programa
     python3 main.py --tokens arquivo.soli              mostra os tokens (testador)
     python3 main.py --ast arquivo.soli                 mostra a árvore sintática
-    python3 main.py --estoque arquivo.soli             executa salvando em estoque_atual.json
-    python3 main.py --estoque=dados.json arquivo.soli  executa salvando em dados.json
 """
 
 import json
@@ -24,17 +22,17 @@ from solilang.errors import SoliLangError
 from solilang.interpreter import Interpretador
 from solilang.lexer import Lexer
 from solilang.parser import Parser
+from solilang.repl import iniciar_repl
 from solilang.semantic import validar
 
-ESTOQUE_PADRAO = "estoque_atual.json"
+ESTOQUE_PADRAO = os.path.join("estoque", "estoque_atual.json")
 
 USO = (
     "Uso:\n"
     "  python3 main.py arquivo.soli                       executa o programa\n"
     "  python3 main.py --tokens arquivo.soli              mostra os tokens\n"
     "  python3 main.py --ast arquivo.soli                 mostra a árvore sintática\n"
-    "  python3 main.py --estoque arquivo.soli             salva em estoque_atual.json\n"
-    "  python3 main.py --estoque=dados.json arquivo.soli  salva em dados.json\n"
+    "  python3 main.py                                    abre o modo interativo\n"
 )
 
 
@@ -59,6 +57,10 @@ def salvar_estoque(caminho, estoque):
     Escreve em um arquivo temporário e renomeia no final: se o programa for
     interrompido no meio, o arquivo original continua intacto.
     """
+    pasta = os.path.dirname(caminho)
+    if pasta:
+        os.makedirs(pasta, exist_ok=True)
+
     temporario = f"{caminho}.tmp"
 
     with open(temporario, "w", encoding="utf-8") as arquivo:
@@ -107,38 +109,46 @@ def executar_arquivo(caminho, caminho_estoque=None):
 
 
 def interpretar_argumentos(argumentos):
-    """separa as flags dos argumentos posicionais.
+    """separa o modo do caminho do programa.
 
-    `--estoque` sozinho usa o arquivo padrão; `--estoque=caminho` escolhe
-    outro arquivo. A forma com `=` existe para não haver ambiguidade entre o
-    nome do estoque e o nome do programa.
-
-    Devolve (modo, caminho_do_programa, caminho_do_estoque).
+    O estoque é sempre salvo em ESTOQUE_PADRAO. Não existe opção de escolher
+    outro arquivo, para evitar livros-caixa paralelos.
     """
-    caminho_estoque = None
     restantes = []
 
     for argumento in argumentos:
-        if argumento == "--estoque":
-            caminho_estoque = ESTOQUE_PADRAO
-        elif argumento.startswith("--estoque="):
-            caminho_estoque = argumento.split("=", 1)[1]
-        else:
-            restantes.append(argumento)
+        if argumento == "--estoque" or argumento.startswith("--estoque="):
+            return None, None
+        restantes.append(argumento)
 
     if len(restantes) == 1:
-        return "executar", restantes[0], caminho_estoque
+        return "executar", restantes[0]
 
     if len(restantes) == 2 and restantes[0] in ("--tokens", "--ast"):
-        return restantes[0][2:], restantes[1], caminho_estoque
+        return restantes[0][2:], restantes[1]
 
-    return None, None, caminho_estoque
+    return None, None
 
 
 def main():
-    modo, caminho, caminho_estoque = interpretar_argumentos(sys.argv[1:])
+    argumentos = sys.argv[1:]
+    modo, caminho = interpretar_argumentos(argumentos)
 
-    if modo is None or caminho_estoque == "":
+    if modo is None and caminho is None and argumentos:
+        print(USO)
+        return 1
+
+    if modo is None and caminho is None:
+        # O modo interativo sempre usa o arquivo padrão. Assim, os comandos
+        # digitados no terminal não perdem o estoque ao encerrar a sessão.
+        estoque = carregar_estoque(ESTOQUE_PADRAO)
+        iniciar_repl(
+            estoque,
+            salvar=lambda atual: salvar_estoque(ESTOQUE_PADRAO, atual),
+        )
+        return 0
+
+    if modo is None:
         print(USO)
         return 1
 
@@ -146,18 +156,15 @@ def main():
         if modo == "tokens":
             mostrar_tokens(caminho)
         elif modo == "ast":
-            estoque_inicial = (
-                carregar_estoque(caminho_estoque) if caminho_estoque else None
-            )
-            mostrar_ast(caminho, estoque_inicial)
+            mostrar_ast(caminho, carregar_estoque(ESTOQUE_PADRAO))
         else:
-            executar_arquivo(caminho, caminho_estoque)
+            executar_arquivo(caminho, ESTOQUE_PADRAO)
 
     except FileNotFoundError:
         print(f"Arquivo não encontrado: {caminho}")
         return 1
     except json.JSONDecodeError:
-        print(f"Erro: arquivo de estoque inválido: {caminho_estoque}")
+        print(f"Erro: arquivo de estoque inválido: {ESTOQUE_PADRAO}")
         return 1
     except SoliLangError as erro:
         print(erro.formatar())

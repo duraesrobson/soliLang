@@ -5,13 +5,7 @@ import os
 import tempfile
 import unittest
 
-from main import (
-    ESTOQUE_PADRAO,
-    carregar_estoque,
-    executar_arquivo,
-    interpretar_argumentos,
-    salvar_estoque,
-)
+from main import ESTOQUE_PADRAO, carregar_estoque, executar_arquivo, salvar_estoque
 from solilang.errors import ErroSemantico
 
 
@@ -46,6 +40,16 @@ class TestEstoqueEmArquivo(unittest.TestCase):
             '{\n  "ARROZ": 10,\n  "LEITE": 5\n}\n',
         )
 
+    def test_arquivo_padrao_fica_dentro_da_pasta_estoque(self):
+        self.assertEqual(ESTOQUE_PADRAO, os.path.join("estoque", "estoque_atual.json"))
+
+    def test_salvar_cria_pastas_necessarias(self):
+        caminho = os.path.join(self.pasta.name, "nova_pasta", "dados.json")
+
+        salvar_estoque(caminho, {"ARROZ": 1})
+
+        self.assertEqual(carregar_estoque(caminho), {"ARROZ": 1})
+
     def test_execucao_acumula_no_estoque_salvo(self):
         salvar_estoque(self.estoque, {"ARROZ": 10})
         self.escrever_programa("INICIO DOACAO ARROZ, 5; DISTRIBUIR ARROZ, 3; FIM")
@@ -62,41 +66,6 @@ class TestEstoqueEmArquivo(unittest.TestCase):
             executar_arquivo(self.programa, self.estoque)
 
         self.assertEqual(carregar_estoque(self.estoque), {"ARROZ": 4})
-
-    def test_flag_estoque_usa_o_arquivo_padrao(self):
-        modo, caminho, estoque = interpretar_argumentos(
-            ["--estoque", "programa.soli"]
-        )
-
-        self.assertEqual(modo, "executar")
-        self.assertEqual(caminho, "programa.soli")
-        self.assertEqual(estoque, ESTOQUE_PADRAO)
-
-    def test_flag_estoque_aceita_caminho_com_igual(self):
-        modo, caminho, estoque = interpretar_argumentos(
-            ["--estoque=outro.json", "programa.soli"]
-        )
-
-        self.assertEqual(modo, "executar")
-        self.assertEqual(caminho, "programa.soli")
-        self.assertEqual(estoque, "outro.json")
-
-    def test_sem_a_flag_nao_ha_persistencia(self):
-        modo, caminho, estoque = interpretar_argumentos(["programa.soli"])
-
-        self.assertEqual(modo, "executar")
-        self.assertEqual(caminho, "programa.soli")
-        self.assertIsNone(estoque)
-
-    def test_modo_ast_aceita_a_flag(self):
-        modo, caminho, estoque = interpretar_argumentos(
-            ["--ast", "--estoque", "programa.soli"]
-        )
-
-        self.assertEqual(modo, "ast")
-        self.assertEqual(caminho, "programa.soli")
-        self.assertEqual(estoque, ESTOQUE_PADRAO)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,7 +8,7 @@ __pycache__/
 venv/
 
 # dados do sistema (nao fazem parte do codigo)
-estoque_atual.json
+estoque/
 *.json.tmp
 
 # chores do sistema

@@ -25,11 +25,9 @@ mensagens de erro claras e estoque sempre consistente.
   - **Meta 10.3** (igualdade de oportunidades e remoção de barreiras): a
     linguagem substitui o controle manual, que depende de memória e papel,
     por um registro verificável.
-- **ODS 4 (meta 4.5) — alinhamento secundário.** A linguagem também serve
-  para controlar itens de uso escolar (caderno, lápis, mochila, uniforme)
-  quando a instituição os distribui. Com o estoque sob controle, a entrega
-  de material didático não é interrompida por falta de itens, o que ajuda a
-  reduzir disparidades de acesso.
+
+A pesquisa de campo não confirmou distribuição de material escolar pela
+instituição (0% das respostas), então o projeto **não reivindica** o ODS 4.
 
 ## Etapas do processamento
 
@@ -77,7 +75,7 @@ Requisito: Python 3.10 ou superior. Nenhuma dependência externa.
 python3 main.py examples/exemplo.soli
 ```
 
-Saída:
+Saída (com o estoque vazio, na primeira execução):
 
 ```
 Consulta ARROZ: 50 unidades
@@ -87,6 +85,10 @@ Consulta ARROZ: 40 unidades
 ARROZ: 40 unidades
 ```
 
+> A partir da segunda execução o estoque acumula: a mesma `DOACAO ARROZ, 50;`
+> soma ao saldo anterior. Para repetir a saída acima, apague o arquivo:
+> `rm -f estoque/estoque_atual.json`.
+
 Outros modos (úteis para inspecionar as etapas):
 
 ```bash
@@ -94,10 +96,11 @@ python3 main.py --tokens examples/exemplo.soli   # lista de tokens
 python3 main.py --ast examples/exemplo.soli      # árvore sintática
 ```
 
-Sem argumentos, o programa exibe o modo de uso:
+Sem argumentos, o programa abre o **modo interativo** (veja a seção abaixo).
+O texto de uso aparece quando a chamada é inválida:
 
 ```bash
-python3 main.py
+python3 main.py --tokens        # sem o arquivo: mostra o uso
 ```
 
 ### Persistência do estoque
@@ -167,18 +170,9 @@ Cada linha é envolvida internamente por `INICIO` e `FIM`, então a gramática
 original continua a mesma. O estado fica vivo entre as linhas; um erro mostra
 a mensagem e não encerra a sessão.
 
-Persistência no REPL:
-
-```bash
-python3 main.py
-```
-
-No REPL, cada linha válida é salva imediatamente em `estoque/estoque_atual.json`.
-Use `:ajuda` para listar os comandos especiais e `:sair` para encerrar.
-
-No modo interativo sem nenhuma opção (`python3 main.py` ou `solilang`), o
-arquivo `estoque/estoque_atual.json` é usado automaticamente: ele é lido ao iniciar a
-sessão e atualizado depois de cada comando válido.
+No modo interativo, **`estoque/estoque_atual.json` é usado automaticamente**:
+o arquivo é lido ao iniciar a sessão e atualizado depois de cada comando
+válido. Use `:ajuda` para listar os comandos especiais e `:sair` para encerrar.
 
 ## A linguagem
 
@@ -283,7 +277,12 @@ solilang/interpreter.py [back-end]  execução e saída
 solilang/repl.py        interface interativa do terminal
 solilang/__main__.py    entrada para `python3 -m solilang`
 examples/               programas de exemplo (válidos e inválidos)
-tests/                  testes automatizados com unittest
+tests/test_lexer.py     tokens, linhas e erros léxicos
+tests/test_parser.py    gramática, AST e erros sintáticos
+tests/test_semantic.py  regras de estoque e erros semânticos
+tests/test_interpreter.py  saída do interpretador
+tests/test_estoque.py   persistência em JSON
+tests/test_repl.py      modo interativo
 ```
 
 ## Testes
@@ -292,8 +291,8 @@ tests/                  testes automatizados com unittest
 python3 -m unittest discover -v
 ```
 
-São 41 testes: 7 de lexer, 9 de parser, 9 de semântica, 4 de integração, 9
-de persistência em arquivo e 5 do modo interativo.
+São 41 testes: 7 de lexer, 9 de parser, 9 de semântica, 4 de integração,
+7 de persistência em arquivo e 5 do modo interativo.
 
 ## Exemplos de erro
 
@@ -315,6 +314,7 @@ python3 main.py examples/erro_semantico.soli
   banco de dados relacional.
 - Sem funções, laços, variáveis ou comentários na linguagem.
 - Sem interface gráfica, autenticação ou controle de usuários.
+- Sem geração de código: o back-end é um interpretador de árvore.
 - A linguagem é de domínio específico para gestão de doações; não é uma
   linguagem de Comunicação Alternativa e Aumentativa (CAA).
 
